@@ -1,0 +1,35 @@
+-Instructions for time display in seconds and millisecons on VLC or MPV. 
+Personally, I recommend MPV because you need less interactions to get the timestamps.
+
+[==For MPV users==]:
+(1). Go to /home/YourUser/.config/mpv   [The folder ".config" is hidden, press CTRL+H to see hidden files]
+(2). If the folder "mpv" doesnt exist create one
+(3). Once inside "mpv" folder, create a file called "input.conf"
+(4). Edit the file with any text editor and copy paste this:
+
+
+S show-text "${=time-pos}"   # Show time on pressing the key assigend
+A frame-step                 # advance one frame and pause
+D frame-back-step            # go back by one frame and pause  
+
+
+(5). You can change that keybinding to your personal preference. But by default pressing "S" will show you the time. Use "A" and "D" to move frame by frame.
+(6). Done!
+
+
+
+
+
+[==For VLC users==]:
+(1). Download the plugin "Jump to Time (Previous Frame)v3" Link --->  https://addons.videolan.org/p/1154013/ 
+
+(2). Copy the .lua file to the extensions folder. According to offical page, extension can be in one of these folders:
+       /usr/lib/i386-linux-gnu/vlc/lua/extensions/      <---(here worked for me)
+       /usr/lib/vlc/lua/extensions/
+       ~/.local/share/vlc/lua/extensions/
+
+(3). Restart vlc or press reload extensions button.
+(4). Open the extension from menu or with right click on the video.
+(5). Set the time format to seconds only.
+(6). Navigate trough video. Press "E" for fowarding frame by frame and copy the exact timestamps to VTOG interface. 
+(7). Done!

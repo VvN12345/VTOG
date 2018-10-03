@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Video To GIF
+Comment=VTOG Script Launcher
+INSERT0
+Icon=folder-visiting
+INSERT1
+Terminal=false
+StartupNotify=false

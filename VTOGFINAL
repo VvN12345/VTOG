@@ -1,0 +1,240 @@
+#!/bin/bash
+# Video to GIF "VTOG" by VvN.
+# Version = 1.0
+# VTOG is a tool that creates GIF's out of video files using FFMPEG for processing and YAD for the main interface. 
+# There are lots of tools out there that make GIF's out of videos but they usually are just too slow when high bitrate videos are used, especially on slow computers.
+# With VTOG you can make GIF's out of extremely high bitrate video sources as long as the format is supported by FFMPEG, even if you are usign a potato pc like the one used to write this script. Its my first script so bear with me if its not optimized, but I can asure you that at least it works!.
+
+
+# LOG
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>VTOG-log.out 2>&1
+
+# LOOP is the variable that determines if the script enters into a loop state or not. By default, on presing exit, "loop" will acquire "No" as value. It will do a single loop if the option "restart on exit" is changed to Yes.
+loop=0
+
+until [ "$loop" = FALSE ]
+do 
+
+
+# Open video GUI
+main0=$(yad --window-icon=gtk-yes --undecorated --title="VTOG" --height=200 --width=400 --borders=20 --text="<span foreground='GREY'><b><big><big>Video To GIF by VvN.
+</big></big></b></span>
+Welcome to VTOG! Choose a Video File as source
+for your GIF" \
+            --form --field="<b><big>Select Video File</big></b>:FL" \
+            --field="Play Video":CHK \
+            --button='Start:0' \
+)
+
+
+# Open video variable assign. Rule for "Play Video" checkbox.
+namein="$(echo "$main0" | awk -F "|" '{ print $1}')"
+playandstart=$(echo "$main0" | awk -F "|" '{ print $2}')
+
+if [ "$playandstart" = TRUE ]
+  then 
+      $(xdg-open "$namein") &
+fi
+
+# Main Interface. This is the main interface section. The whole interface is linked to a single variable called "main". That means the full output of the GUI will be stored in a single STDOUT. By default YAD separates the input fields with pipes. Variable assigning of each field is done later on whith "awk" command. 
+main=$(yad --window-icon=gtk-yes --title=VTOG --geometry=200x740+1+1 --height=700 --width=400 --borders=20 --undecorated --left '' '0' '' '0' '' '0' '' '0' '' '0' '' 'High!Normal!Low!Bayer-5!Compare' '' 'name.gif' '' 'Choose Folder' '' 'No!Yes' '' 'No!Yes' --text='<span foreground="GREY"><b><big><big>Video To GIF by VvN.
+</big></big></b></span>' \
+            --form --field="":LBL \
+            --field="<b><big>START AT</big></b>
+Enter starting time stamp here" \
+            --field="":LBL \
+            --field="<b><big>END AT</big></b> 
+Enter ending time stamp here" \
+            --field="":LBL \
+            --field="<b><big>FPS</big></b>
+Enter desired frames per second  " \
+            --field="":LBL \
+            --field="<b><big>WIDTH</big></b>
+Enter custom Width in pixels" \
+            --field="":LBL \
+            --field="<b><big>HEIGHT</big></b>
+Enter custom Height in pixels" \
+            --field="":LBL \
+            --field="<b><big>QUALITY PRESET</big></b>
+Choose the quality level":CB \
+            --field="":LBL \
+            --field="<b><big>OUTPUT NAME</big></b>
+Choose name with extension" \
+            --field="":LBL \
+            --field="<b><big>SAVE TO</big></b>:DIR" / \
+            --field="":LBL \
+            --field="Restart on EXIT":CHK \
+            --field="Save Log":CHK \
+            --field="":LBL \
+            --button='Exit:0' \
+            --button='Help:yad --window-icon=gtk-yes --on-top --title=VTOG --geometry=500x700+1+1 --undecorated --skip-taskbar --borders=20 --text="
+<b><big>VTOG Help Section</big></b>
+
+- <b>Open video file</b>
+<small>Press the box to search for the source video for your GIF. If Play Video is selected, the default media player of your system will open the selected video. MPV or VLC are both recommended.</small>  
+
+- <b>Start At/End At</b> 
+<small>Enter IN SECONDS, the starting/ending time stamp. You can use any media player to search for your time stamps as long as time is displayed in seconds. If VLC is used, a external plugin will display the time in seconds and milliseconds. If MPV is used, a single command must be added to mpv config file to display time in seconds and milliseconds. For accurate time stamps, the use of milliseconds is advised. More info on how to configure VLC/MPV for time display in VTOG Notes.</small>
+
+- <b>Frames Per Second</b>
+<small>Enter the frames per second or FPS for your GIF. This setting has great impact on GIF file size. Time stamps will be highly precise if GIF Frames per second matches source video frames per second. This is not advised for long GIFs due to large file size.</small>
+
+- <b>Width/Height/Aspect Ratio</b>
+<small>Enter custom WIDTH/HEIGHT in pixels. To keep the original Aspect Ratio of the source video, leave the digit 0 on the HEIGHT entry box.</small>
+
+- <b>Quality Preset</b>
+<small>Each preset will affect size and quality of the GIF. To execute all presets in a single run, select the option Compare.</small>
+
+- <b>Output/Save</b>
+<small>Output name must have the ".gif" extension. If "Compare" quality preset is selected, output name will have some added text.</small>
+
+- <b>Restart/Save Log</b>
+<small>Checkbox Restart on Exit will send VTOG complete script into a single loop after is finished. A log file is created everytime VOTG works. If Save Log checkbox is selected, the log will be saved after the operation. Also checking this box will add echo parameters to the log, showing the output of every varaible on the script to detect errors more easily.</small>
+
+
+Enjoy!
+<small>VvN.</small>
+
+<small>Press ESC to Exit</small>
+"' \
+            --button='GO:0' \
+)
+
+# GUI to variable
+time0=$(echo "$main" | awk -F "|" '{ print $2}')
+time1=$(echo "$main" | awk -F "|" '{ print $4}')
+fps=$(echo "$main" | awk -F "|" '{ print $6}')
+width=$(echo "$main" | awk -F "|" '{ print $8}')
+height=$(echo "$main" | awk -F "|" '{ print $10}')
+quality=$(echo "$main" | awk -F "|" '{ print $12}')
+name=$(echo "$main" | awk -F "|" '{ print $14}')
+logsave=$(echo "$main" | awk -F "|" '{ print $19}')
+
+
+# Time format. In ffmpeg, time input must use a "dot" if decimals are used. In case of a "comma" being pasted in the box, this variable will replace that "comma" with a dot. If a dot is used, this variable won't do any changes. "time2" is the substraction of "time1" - "time0". Thats because ffmpeg needs a starting time (time0) and duration (time2).
+timet0=${time0//,/.}
+timet1=${time1//,/.}
+time2=$(echo "$timet1 - $timet0" | bc)
+
+# Loop and path. The "$path" variable adds a slash at the end to create an absolute path when placed next to "$name".
+loop=$(echo "$main" | awk -F "|" '{ print $18}')
+path=$(echo "$main" | awk -F "|" '{ print $16}')'/'
+
+# Keep original aspect ratio from source. Leaving HEIGHT entry box with a "0" will tell ffmpeg to maintain the original aspect ratio replacing it with a "-1".
+if [ "$height" = 0 ]
+  then
+      height="-1"
+fi
+
+
+
+# GUI input check. If variables with incorrect input, an error message will prompt before ffmpeg start. e.g "time1" is less than "time0" giving a negative time duration for the GIF.
+if [ "$time0" -gt "$time1" ] #wrong time
+  then    
+      yad --kill-parent --skip-taskbar --text="<b>Error in time input</b>" --undecorated --borders=50 --title="VTOG by VvN." --form --button=Ok:1
+fi
+
+
+if [ "$fps" -lt 0 ] #wrong fps
+  then    
+      yad --kill-parent --skip-taskbar --text="<b>Error in FPS input</b>" --undecorated --borders=50 --title="VTOG by VvN." --form --button=Ok:1
+fi
+
+
+
+
+
+# Quality preset selection. These are presets for the ffmpeg program. They will launch only if "$quality" has a match with the statement.
+
+# HIGH QUALITY PRESET
+if [ "$quality" = "High" ] 
+  then 
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1" "$path$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [1/1]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN." 
+fi
+
+
+
+# NORMAL QUALITY PRESET
+if [ "$quality" = "Normal" ] 
+  then 
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen [p];[b][p] paletteuse" "$path$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [1/1]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+fi
+
+
+# LOW QUALITY PRESET
+if [ "$quality" = "Low" ] 
+  then 
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen [p];[b][p] paletteuse=dither=none" "$path$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [1/1]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+fi
+
+
+# BAYER-5 PRESET
+if [ "$quality" = "Bayer-5" ] 
+  then 
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen [p];[b][p] paletteuse=dither=bayer:bayer_scale=5" "$out" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [1/1]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+fi
+
+
+# HIGH, NORMAL, LOW and BAYER-5 are executed sequientially for comparison 
+if [ "$quality" = "Compare" ] 
+  then
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1" "$path-High-$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [1/4]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen [p];[b][p] paletteuse" "$path-Normal-$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [2/4]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen [p];[b][p] paletteuse=dither=none" "$path-Low-$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [3/4]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+
+      ffmpeg -y -ss "$timet0" -t "$time2" -i "$namein" -filter_complex "[0:v] fps="$fps",scale=w="$width:$height",split [a][b];[a] palettegen [p];[b][p] paletteuse=dither=bayer:bayer_scale=1" "$path-Bayer5-$name" | yad --progress --auto-close --rtl --skip-taskbar --percentage=100 --progress-text="FFMPEG WORKING PLEASE WAIT [4/4]" --no-buttons --undecorated --borders=50 --title="VTOG by VvN."
+fi
+
+
+# Exit GUI pop-up. If the file is created, a "Complete" message will be displayed. If the file isnt created, a "GIF Not created" message will be displayed.
+if [ -e "$path$name" -o -e "$path-High-$name"  ]
+then
+    echo "ok"
+    yad --timeout=1 --progress --skip-taskbar --title="VTOG by VvN." --borders=50 --no-buttons --undecorated --progress-text="COMPLETED!" --percentage=100
+else
+    yad --timeout=2 --progress --skip-taskbar --title="VTOG by VvN." --borders=50 --no-buttons --undecorated --progress-text="NO GIF CREATED [0/0]
+            EXIT" --percentage=0
+fi
+
+# LOG save. A log is created every time a GIF is created. This log is erased at the end of the operation unless the option "Save log" is selected.
+if [ "$logsave" = FALSE ]
+  then
+      rm VTOG-log.out
+fi
+
+
+
+done
+
+#DEBUG, will print these echos only if "$logsave" matches the statement.
+if [ "$logsave" = TRUE ]
+then
+      echo "==============================================" 
+      echo "                DEBUG MODE                    "
+      echo "==============================================" 
+      echo "main0        = $main0" 
+      echo "namein       = $namein"
+      echo "playandstart = $playandstart"
+      echo "main         = $main"
+      echo "time0        = $time0"
+      echo "time1        = $time1"
+      echo "fps          = $fps"
+      echo "width        = $width"
+      echo "height       = $height"
+      echo "quality      = $quality"
+      echo "name         = $name"
+      echo "logsave      = $logsave"
+      echo "time2        = $time2"
+      echo "loop         = $loop"
+      echo "path         = $path"
+      echo "=============================================="
+      echo "THIS LOG WILL BE DELETED ON NEXT VTOG RUN, SAVE IN OTHER FOLDER IF NEEDED"
+fi
+
+#END
+echo END
+

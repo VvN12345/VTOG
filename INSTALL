@@ -1,0 +1,67 @@
+#!/bin/bash
+
+##YAD INSTALLED ON SYSTEM CHECK##
+echo "**VTOG 1.0 Install**"
+sleep 2
+
+
+echo "[Yad check]"
+if ! dpkg-query -W yad | grep . 
+then 
+     printf "%s\n" "###YAD isn't installed. Manual installation required###" 
+     echo "" 
+else 
+     printf "%s\n" "Yad installed on system?= OK!
+"
+     yadok=TRUE
+fi
+
+sleep 1
+echo ""
+echo "[FFMPEG check]"
+sleep 2
+
+if ! dpkg-query -W ffmpeg | grep . 
+then 
+     printf "%s\n" "###FFMPEG isn't installed. Manual installation required###" 
+     echo ""
+else 
+     printf "%s\n" "FFMPEG installed on system?= OK!
+
+
+"
+     ffmpegok=TRUE
+fi
+
+if [ $yadok = TRUE -a $ffmpegok = TRUE ]
+then
+     echo "---Yad/FFMPEG check complete---
+"
+     sleep 3
+     echo "VTOG folder created on /home/$(whoami)"
+     mkdir "/home/$(whoami)/VTOGF"
+     cp -R ./. "/home/$(whoami)/VTOGF"
+     rm "/home/$(whoami)/VTOGF/INSTALL"
+     echo "Chmod 755 on VTOG"
+     chmod 755 "/home/$(whoami)/VTOGF/VTOGFINAL"
+     chmod +x "/home/$(whoami)/VTOGF/VTOGFINAL"
+     insertpath0="Exec=/home/$(whoami)/VTOGF/VTOGFINAL"
+     insertpath1="Path=/home/$(whoami)/VTOGF"
+     sed -i s!INSERT0!$insertpath0! "/home/$(whoami)/VTOGF/Video To GIF.desktop"
+     sed -i s!INSERT1!$insertpath1! "/home/$(whoami)/VTOGF/Video To GIF.desktop"
+     sleep 3
+     read -p "Create shortcut on desktop?  y/n " -n 1 -r
+     echo
+    
+     if [[ $REPLY =~ ^[Yy]$ ]]
+       then
+           cp "/home/$(whoami)/VTOGF/Video To GIF.desktop"  "/home/$(whoami)/Desktop"
+     fi
+     echo "Installation complete"
+     echo "VTOG READY TO USE!"
+     
+else
+    echo "Failed at YAD/FFMPEG installation check."
+    echo "Exiting"
+
+fi
