@@ -28,6 +28,8 @@ VTOG uses quality presets to make FFMPEG commands friendly and simple to the end
 
 ![Example](Resources/VTOG-GUI.png "Simple VTOG GUI running along MPV to determine timestamps")
 
+
+FFMPEG AND YAD ARE REQUIRED TO RUN VTOG
 How to install.
 1. Download VTOGv1.tar
 2. Extract and open a terminal in the same folder
@@ -35,7 +37,8 @@ How to install.
 4. Run command:   $ ./INSTALL
 4. Done!
 
-
+I want this project to be available for all the distros, but I'am just starting so my knowledge is very limited.
+Also english is not main native language so feel free to correct every gramatical error.
 Inside VTOG-Notes.txt is the info for time display in VLC and MPV. Also help button have a detailed description of every setting.
 
 
